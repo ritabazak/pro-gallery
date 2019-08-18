@@ -831,9 +831,9 @@ class GalleryItem {
   }
 
   get linkText() {
-    if (this.metadata.link) {
-      return this.metadata.link.text || this.defaultLinkText;
-    }
+    return (
+      (this.metadata.link && this.metadata.link.text) || this.defaultLinkText
+    );
   }
 
   set linkText(value) {
@@ -844,9 +844,7 @@ class GalleryItem {
   }
 
   get linkTitle() {
-    if (this.metadata.link) {
-      return this.metadata.link.title;
-    }
+    return this.metadata.link && this.metadata.link.title;
   }
 
   set linkTitle(value) {
@@ -857,9 +855,7 @@ class GalleryItem {
   }
 
   get linkUrl() {
-    if (this.metadata.link) {
-      return this.metadata.link.url;
-    }
+    return this.metadata.link && this.metadata.link.url;
   }
 
   set linkUrl(value) {
@@ -874,7 +870,7 @@ class GalleryItem {
   }
 
   get linkTitleFromUrl() {
-    const regex = /[^\/]*\.\w+$/g;
+    const regex = /[^/]*\.\w+$/g;
     const regexRes = regex.exec(this.linkUrl);
     const match = regexRes && regexRes[0];
     return match && match.split('.')[0];

@@ -184,7 +184,7 @@ export class GalleryContainer extends React.Component {
 
     const { galleryItems } = this.galleryStructure;
 
-    const itemsWithoutDimensions = galleryItems.filter((item, idx) => {
+    const itemsWithoutDimensions = galleryItems.filter(item => {
       try {
         return item.isVisible && item.isDimensionless && !item.isPreloaded;
       } catch (e) {
@@ -250,7 +250,7 @@ export class GalleryContainer extends React.Component {
       }
     }, 2500);
 
-    itemsWithoutDimensions.forEach((item, idx, items) => {
+    itemsWithoutDimensions.forEach((item, idx) => {
       item.isPreloaded = true;
       preloadItem(item, e => {
         try {
@@ -277,8 +277,8 @@ export class GalleryContainer extends React.Component {
             throttledReCreateGallery();
             // }
           }
-        } catch (e) {
-          console.error('Could not calc element dimensions', e);
+        } catch (_e) {
+          console.error('Could not calc element dimensions', _e);
         }
       });
     });
@@ -350,12 +350,12 @@ export class GalleryContainer extends React.Component {
       container: '',
     };
 
-    const containerHadChanged = container => {
+    const containerHadChanged = _container => {
       if (!state.styles || !state.container) {
         reason.container = 'no old container or styles. ';
         return true; //no old container or styles (style may change container)
       }
-      if (!container) {
+      if (!_container) {
         reason.container = 'no new container.';
         return false; // no new continainer
       }
@@ -363,16 +363,17 @@ export class GalleryContainer extends React.Component {
         height:
           !state.styles.oneRow && state.styles.enableInfiniteScroll
             ? false
-            : !!container.height &&
-              container.height !== this.props.container.height,
+            : !!_container.height &&
+              _container.height !== this.props.container.height,
         width:
           !state.container ||
-          (dimensionsHelper.isFullWidth(container) &&
+          (dimensionsHelper.isFullWidth(_container) &&
             window.innerWidth !== state.container.windowWidth) ||
-          (!!container.width && container.width !== this.props.container.width),
+          (!!_container.width &&
+            _container.width !== this.props.container.width),
         scrollBase:
-          !!container.scrollBase &&
-          container.scrollBase !== this.props.container.scrollBase,
+          !!_container.scrollBase &&
+          _container.scrollBase !== this.props.container.scrollBase,
         documentHeight:
           !state.container ||
           window.document.body.scrollHeight !== state.container.documentHeight,
@@ -385,8 +386,8 @@ export class GalleryContainer extends React.Component {
       }, false);
     };
 
-    const stylesHaveChanged = styles => {
-      if (!styles) {
+    const stylesHaveChanged = _styles => {
+      if (!_styles) {
         reason.styles = 'no new styles.';
         return false; //no new styles - use old styles
       }
@@ -396,7 +397,7 @@ export class GalleryContainer extends React.Component {
       }
       try {
         const wasChanged =
-          JSON.stringify(styles) !== JSON.stringify(this.props.styles);
+          JSON.stringify(_styles) !== JSON.stringify(this.props.styles);
         if (wasChanged) {
           reason.styles = 'styles were changed.';
         }
@@ -407,13 +408,13 @@ export class GalleryContainer extends React.Component {
       }
     };
 
-    const itemsWereAdded = items => {
+    const itemsWereAdded = _items => {
       const existingItems = this.items;
-      if (items === this.items) {
+      if (_items === this.items) {
         reason.itemsAdded = 'items are the same object.';
         return false; //it is the exact same object
       }
-      if (!items) {
+      if (!_items) {
         reason.itemsAdded = 'new items do not exist.';
         return false; // new items do not exist (use old items)
       }
@@ -421,13 +422,13 @@ export class GalleryContainer extends React.Component {
         reason.itemsAdded = 'old items do not exist.';
         return false; // old items do not exist (it is not items addition)
       }
-      if (existingItems.length >= items.length) {
+      if (existingItems.length >= _items.length) {
         reason.itemsAdded = 'more old items than new items.';
         return false; // more old items than new items
       }
       const idsNotChanged = existingItems.reduce((is, _item, idx) => {
         //check that all the existing items exist in the new array
-        return is && _item.id === items[idx].itemId;
+        return is && _item.id === _items[idx].itemId;
       }, true);
 
       if (!idsNotChanged) {
