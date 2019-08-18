@@ -22,7 +22,7 @@ class VideoItemPlaceholder extends GalleryComponent {
           (this.props.loadingStatus.loaded ? ' gallery-item-loaded ' : '') +
           (this.props.loadingStatus.failed ? ' failed ' : '')
         }
-        src={this.props.resized_url.img}
+        src={this.props.resized_url().img()}
       />
     );
   }
@@ -56,7 +56,7 @@ class VideoItemPlaceholder extends GalleryComponent {
         data-hook="video-placeholder_container-image-element"
         key={'video-and-hover-container' + this.props.id}
         style={{
-          backgroundImage: `url(${this.props.resized_url.img})`,
+          backgroundImage: `url(${this.props.resized_url().img()})`,
           ...restOfDimensions,
         }}
       >

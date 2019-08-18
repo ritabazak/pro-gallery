@@ -9,7 +9,17 @@ class GalleryItem {
     this.uniqueId = utils.generateUUID();
     this.isGalleryItem = true;
     this.createdBy = config.createdBy;
-    
+    this._cachedUrls = {};
+
+    this.resized_url = this.resized_url.bind(this);
+    this.pixel_url = this.pixel_url.bind(this);
+    this.thumbnail_url = this.thumbnail_url.bind(this);
+    this.square_url = this.square_url.bind(this);
+    this.full_url = this.full_url.bind(this);
+    this.sample_url = this.sample_url.bind(this);
+    this.preload_url = this.preload_url.bind(this);
+    this.download_url = this.download_url.bind(this);
+
     this.update(config);
   }
 
@@ -75,7 +85,6 @@ class GalleryItem {
     }
     this.resetUrls();
     this.updateSharpParams();
-
   }
 
   processScheme(scheme) {
@@ -282,76 +291,89 @@ class GalleryItem {
     };
   }
 
-  resizedUrl (
-      resizeMethod,
-      requiredWidth,
-      requiredHeight,
-      sharpParams,
-  ) {
-
+  resizedUrl(resizeMethod, requiredWidth, requiredHeight, sharpParams) {
     const resizeUrl = (item, url, ...args) => {
-      let resizedUrl = url;
+      let resizedUrl;
       if (typeof this.resizeMediaUrl === 'function') {
-        resizedUrl = this.resizeMediaUrl(item, url, ...args);
+        try {
+          const str = JSON.stringify({ url, ...args });
+          if (!this._cachedUrls[str]) {
+            this._cachedUrls[str] = String(
+              this.resizeMediaUrl(item, url, ...args) || '',
+            );
+            console.log('Creating urls for item #' + this.idx, {
+              url,
+              ...args,
+            });
+          }
+          resizedUrl = this._cachedUrls[str];
+        } catch (e) {
+          resizedUrl = String(url);
+        }
+      } else {
+        resizedUrl = String(url);
       }
-      return String(resizedUrl || '');
+      return resizedUrl;
     };
 
     requiredWidth = Math.ceil(requiredWidth);
     requiredHeight = Math.ceil(requiredHeight);
     const thumbSize = 250;
 
-    const focalPoint = resizeMethod === RESIZE_METHODS.FILL && this.isCropped && this.focalPoint;
+    const focalPoint =
+      resizeMethod === RESIZE_METHODS.FILL && this.isCropped && this.focalPoint;
 
     const urls = {};
     let imgUrl = this.url;
 
     if (this.isText) {
       return {};
-
     } else if (this.isVideo) {
-
       imgUrl = this.poster;
 
       if (utils.isExternalUrl(this.url)) {
-        urls.video = this.url;
+        urls.video = () => this.url;
       } else {
-        urls.video = resizeUrl(
-          this,
-          this.url,
-          RESIZE_METHODS.VIDEO,
-          requiredWidth,
-          requiredHeight,
-        )
+        urls.video = () =>
+          resizeUrl(
+            this,
+            this.url,
+            RESIZE_METHODS.VIDEO,
+            requiredWidth,
+            requiredHeight,
+          );
       }
     }
 
-    urls.img = resizeUrl(
-      this,
-      imgUrl,
-      resizeMethod,
-      requiredWidth,
-      requiredHeight,
-      sharpParams,
-      focalPoint,
-    );
+    urls.img = () =>
+      resizeUrl(
+        this,
+        imgUrl,
+        resizeMethod,
+        requiredWidth,
+        requiredHeight,
+        sharpParams,
+        focalPoint,
+      );
 
-    urls.thumb = resizeUrl(
-      this,
-      imgUrl,
-      resizeMethod,
-      thumbSize,
-      (thumbSize * requiredHeight) / requiredWidth,
-      { ...sharpParams, quality: 30, blur: 30 },
-      focalPoint,
-    );
+    urls.thumb = () =>
+      resizeUrl(
+        this,
+        imgUrl,
+        resizeMethod,
+        thumbSize,
+        (thumbSize * requiredHeight) / requiredWidth,
+        { ...sharpParams, quality: 30, blur: 30 },
+        focalPoint,
+      );
 
-    urls.seoLink = urls.img.replace(/\.webp$/i, '.jpg'); //SEO needs .jpg instead of .webp, replace does not mutate
+    urls.seoLink = () => ({
+      img: () => urls.img().replace(/\.webp$/i, '.jpg'),
+    }); //SEO needs .jpg instead of .webp, replace does not mutate
 
     return urls;
-  };
+  }
   resetUrls() {
-
     const maxDimension = 500;
     const maxWidth = this.maxWidth || this.dto.width || this.metadata.width;
     const maxHeight = this.maxHeight || this.dto.height || this.metadata.height;
@@ -364,60 +386,86 @@ class GalleryItem {
     this.urls = {};
   }
 
-
-  get resized_url() {
+  resized_url() {
     if (!this.urls.resized_url) {
-      this.urls.resized_url = this.resizedUrl(this.cubeType, this.resizeWidth, this.resizeHeight, this.sharpParams);
+      this.urls.resized_url = this.resizedUrl(
+        this.cubeType,
+        this.resizeWidth,
+        this.resizeHeight,
+        this.sharpParams,
+      );
     }
     return this.urls.resized_url;
   }
-  
-  get pixel_url() {
+
+  pixel_url() {
     if (!this.urls.pixel_url) {
-      this.urls.pixel_url = this.resizedUrl(RESIZE_METHODS.FILL, 1, 1, { quality: 5 });
+      this.urls.pixel_url = this.resizedUrl(RESIZE_METHODS.FILL, 1, 1, {
+        quality: 5,
+      });
     }
     return this.urls.pixel_url;
   }
-  
-  get thumbnail_url() {
+
+  thumbnail_url() {
     if (!this.urls.thumbnail_url) {
-      this.urls.thumbnail_url = this.resizedUrl(RESIZE_METHODS.FIT, this.thumbnailWidth, this.thumbnailHeight, { quality: 30 });
+      this.urls.thumbnail_url = this.resizedUrl(
+        RESIZE_METHODS.FIT,
+        this.thumbnailWidth,
+        this.thumbnailHeight,
+        { quality: 30 },
+      );
     }
     return this.urls.thumbnail_url;
   }
-  
-  get square_url() {
+
+  square_url() {
     if (!this.urls.square_url) {
-      this.urls.square_url = this.resizedUrl(RESIZE_METHODS.FILL, 100, 100, { quality: 80 });
+      this.urls.square_url = this.resizedUrl(RESIZE_METHODS.FILL, 100, 100, {
+        quality: 80,
+      });
     }
     return this.urls.square_url;
   }
-  
-  get full_url() {
+
+  full_url() {
     if (!this.urls.full_url) {
-      this.urls.full_url = this.resizedUrl(RESIZE_METHODS.FULL, this.maxWidth, this.maxHeight, this.sharpParams);
+      this.urls.full_url = this.resizedUrl(
+        RESIZE_METHODS.FULL,
+        this.maxWidth,
+        this.maxHeight,
+        this.sharpParams,
+      );
     }
     return this.urls.full_url;
   }
-  
-  get sample_url() {
+
+  sample_url() {
     if (!this.urls.sample_url) {
-      this.urls.sample_url = this.resizedUrl(RESIZE_METHODS.FIT, 500, 500, this.sharpParams);
+      this.urls.sample_url = this.resizedUrl(
+        RESIZE_METHODS.FIT,
+        500,
+        500,
+        this.sharpParams,
+      );
     }
     return this.urls.sample_url;
   }
-  
-  get preload_url() {
+
+  preload_url() {
     if (!this.urls.preload_url) {
       this.urls.preload_url = this.resized_url;
     }
     return this.urls.preload_url;
   }
-  
-  get download_url() {
+
+  download_url() {
     if (!this.urls.download_url) {
-      this.urls.download_url = utils.isStoreGallery() ? this.sample_url : this.full_url;
-      this.urls.download_url.img += `?dn=${this.fileName}`;
+      this.urls.download_url = utils.isStoreGallery()
+        ? this.sample_url
+        : this.full_url;
+      //TODO - add to function
+      // this.urls.download_url.img += `?dn=${this.fileName}`;
     }
     return this.urls.download_url;
   }
@@ -563,12 +611,14 @@ class GalleryItem {
     return (
       this.metadata.poster ||
       (this.metadata.customPoster && this.metadata.customPoster.url) ||
-      (this.metadata.posters ? this.metadata.posters[this.metadata.posters.length - 1].url : null)
-    )
+      (this.metadata.posters
+        ? this.metadata.posters[this.metadata.posters.length - 1].url
+        : null)
+    );
   }
 
   get qualities() {
-    return (this.metadata.qualities)
+    return this.metadata.qualities;
   }
 
   get isExternalVideo() {

@@ -77,7 +77,7 @@ class VideoItem extends GalleryComponent {
     }
     const url = this.props.videoUrl
       ? this.props.videoUrl
-      : this.props.resized_url.video;
+      : this.props.resized_url().video();
     return (
       <ReactPlayer
         className={'gallery-item-visible video gallery-item'}
@@ -109,7 +109,7 @@ class VideoItem extends GalleryComponent {
             attributes: {
               muted: !this.props.styleParams.videoSound,
               preload: 'metadata',
-              poster: this.props.resized_url.img,
+              poster: this.props.resized_url().img(),
               style: videoDimensionsCss,
             },
           },
@@ -157,7 +157,7 @@ class VideoItem extends GalleryComponent {
           (this.props.loadingStatus.loaded ? ' gallery-item-loaded ' : '') +
           (this.props.loadingStatus.failed ? ' failed ' : '')
         }
-        src={this.props.resized_url.img}
+        src={this.props.resized_url().img()}
       />
     );
   }
@@ -236,7 +236,7 @@ class VideoItem extends GalleryComponent {
             utils.deviceHasMemoryIssues()
               ? {}
               : {
-                  backgroundImage: `url(${this.props.resized_url.thumb})`,
+                  backgroundImage: `url(${this.props.resized_url().thumb()})`,
                   ...restOfDimensions,
                 }
           }
@@ -251,7 +251,7 @@ class VideoItem extends GalleryComponent {
           data-hook="video_container-image-element"
           key={'video_container-' + this.props.id}
           style={{
-            backgroundImage: `url(${this.props.resized_url.img})`,
+            backgroundImage: `url(${this.props.resized_url().img()})`,
             ...restOfDimensions,
           }}
         >

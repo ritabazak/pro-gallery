@@ -215,11 +215,8 @@ export class GalleryContainer extends React.Component {
 
         if (typeof item.preload_url === 'string') {
           this.preloadedItems[id].src = item.preload_url;
-        } else if (
-          typeof item.preload_url === 'object' &&
-          item.preload_url.thumb
-        ) {
-          this.preloadedItems[id].src = item.preload_url.thumb;
+        } else if (typeof item.preload_url === 'function') {
+          this.preloadedItems[id].src = item.preload_url().thumb();
         }
 
         if (typeof onload === 'function') {

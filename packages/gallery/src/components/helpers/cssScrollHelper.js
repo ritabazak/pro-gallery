@@ -180,7 +180,7 @@ class CssScrollHelper {
       if (!window.isSSR && !item.isDimensionless) {
         scrollCss +=
           createScrollSelectors(this.highResPadding(), `.image-item>canvas`) +
-          `{opacity: 1; background-image: url(${resized_url.img})}`;
+          `{opacity: 1; background-image: url(${resized_url().img()})}`;
       }
 
       //add the blurry image
@@ -192,7 +192,7 @@ class CssScrollHelper {
       ) {
         scrollCss +=
           createScrollSelectors(this.lowResPadding(), `.image-item`) +
-          `{background-image: url(${resized_url.thumb})}`;
+          `{background-image: url(${resized_url().thumb()})}`;
       }
     }
 

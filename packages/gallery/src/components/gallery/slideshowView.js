@@ -437,7 +437,7 @@ class SlideshowView extends GalleryComponent {
               width: thumbnailSize,
               height: thumbnailSize,
               margin: thumbnailSpacings,
-              backgroundImage: `url(${thumbnailItem.thumbnail_url.img})`,
+              backgroundImage: `url(${thumbnailItem.thumbnail_url().img()})`,
             };
             const thumbnailOffset = oneRow
               ? { left: thumbnailSize * idx + 2 * idx * thumbnailSpacings }
@@ -702,21 +702,19 @@ class SlideshowView extends GalleryComponent {
           key={'column' + c}
           style={columnStyle}
         >
-          <div
-            className="gallery-horizontal-scroll-inner"
-          >
-          {!!column.galleryGroups.length &&
-            column.galleryGroups.map(group =>
-              group.rendered
-                ? React.createElement(
-                    GroupView,
-                    _.merge(group.renderProps(galleryConfig), {
-                      itemsLoveData,
-                    }),
-                  )
-                : false,
-            )}
-          </div>  
+          <div className="gallery-horizontal-scroll-inner">
+            {!!column.galleryGroups.length &&
+              column.galleryGroups.map(group =>
+                group.rendered
+                  ? React.createElement(
+                      GroupView,
+                      _.merge(group.renderProps(galleryConfig), {
+                        itemsLoveData,
+                      }),
+                    )
+                  : false,
+              )}
+          </div>
         </div>
       );
     });

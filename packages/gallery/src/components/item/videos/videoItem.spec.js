@@ -111,11 +111,11 @@ describe('Video Item ', () => {
     });
     driver.mount(VideoItem, sampleItemViewProps);
     expect(driver.find.selector('ReactPlayer').props().url).equal(
-      sampleItemViewProps.resized_url.video,
+      sampleItemViewProps.resized_url().video(),
     );
     expect(
       driver.find.selector('ReactPlayer').props().config.file.attributes.poster,
-    ).equal(sampleItemViewProps.resized_url.img);
+    ).equal(sampleItemViewProps.resized_url().img());
     Object.assign(sampleItemViewProps, {
       videoUrl: 'https://www.youtube.com/watch?v=2J5GzHoKl1Q',
     });
@@ -125,7 +125,7 @@ describe('Video Item ', () => {
     );
     expect(
       driver.find.selector('ReactPlayer').props().config.file.attributes.poster,
-    ).equal(sampleItemViewProps.resized_url.img);
+    ).equal(sampleItemViewProps.resized_url().img());
   });
 
   it('video controls should appear if not hidePlay', () => {
